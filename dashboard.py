@@ -8,7 +8,7 @@ import numpy as np
 # Set page configuration
 st.set_page_config(
     page_title="Mr. Life Okey Dashboard",
-    page_icon="👕",
+    page_icon="images/logo.png",
     layout="wide"
 )
 
