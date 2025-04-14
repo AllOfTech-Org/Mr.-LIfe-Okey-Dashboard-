@@ -6,11 +6,22 @@ import base64
 import numpy as np
 
 # Set page configuration (at the top of your script)
+# Set page configuration (at the top of your script)
 st.set_page_config(
     page_title="Mr. Life Okey Dashboard",
     page_icon="images/logo.png",
     layout="wide",
 )
+
+# 👇 Add this right after st.set_page_config()
+hide_default_ui = """
+<style>
+    #MainMenu {visibility: hidden;}  /* Hides the three-dot menu (⋮) */
+    header {visibility: hidden;}     /* Hides the GitHub fork button (🎯) & settings (⚙️) */
+    footer {visibility: hidden;}     /* Optional: Hides "Made with Streamlit" */
+</style>
+"""
+st.markdown(hide_default_ui, unsafe_allow_html=True)
 ######################################
 # Custom Styling with Background
 ######################################
