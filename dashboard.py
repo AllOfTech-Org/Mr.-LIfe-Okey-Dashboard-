@@ -5,32 +5,31 @@ import plotly.express as px
 import base64
 import numpy as np
 
-# Set page configuration (at the top of your script)
-# Set page configuration (at the top of your script)
+# Set page configuration
 st.set_page_config(
     page_title="Mr. Life Okey Dashboard",
     page_icon="images/logo.png",
     layout="wide",
 )
 
-# 👇 Add this right after st.set_page_config()
+# Hide default UI elements
 hide_default_ui = """
 <style>
-    #MainMenu {visibility: hidden;}  /* Hides the three-dot menu (⋮) */
-    header {visibility: hidden;}     /* Hides the GitHub fork button (🎯) & settings (⚙️) */
-    footer {visibility: hidden;}     /* Optional: Hides "Made with Streamlit" */
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
 </style>
 """
 st.markdown(hide_default_ui, unsafe_allow_html=True)
+
 ######################################
 # Custom Styling with Background
 ######################################
-def set_custom_style(background_image_path):
-    """
-    Set custom styling for the dashboard including background
-    """
+def set_custom_style(background_image_path, sidebar_image_path):
     with open(background_image_path, "rb") as image:
         encoded = base64.b64encode(image.read()).decode()
+    with open(sidebar_image_path, "rb") as sidebar_img:
+        sidebar_encoded = base64.b64encode(sidebar_img.read()).decode()
 
     css = f"""
     <style>
@@ -42,16 +41,28 @@ def set_custom_style(background_image_path):
         background-attachment: fixed;
     }}
 
+    [data-testid=stSidebar] {{
+        background-image: url("data:image/png;base64,{sidebar_encoded}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }}
+
+    .stSidebar .sidebar-content {{
+        background-color: rgba(255, 255, 255, 0.8) !important;
+        backdrop-filter: blur(5px);
+        padding: 1rem;
+        border-radius: 10px;
+    }}
+
     .main .block-container {{
         padding: 2rem;
     }}
 
-    /* Make all text black */
     .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6, span, div {{
         color: black !important;
     }}
 
-    /* Style for metric values and labels */
     [data-testid="stMetricLabel"] {{
         color: black !important;
         font-size: 0.9rem !important;
@@ -70,7 +81,6 @@ def set_custom_style(background_image_path):
         font-weight: 500 !important;
     }}
 
-    /* Make graph text black */
     .js-plotly-plot .plotly .gtitle, 
     .js-plotly-plot .plotly .xtitle,
     .js-plotly-plot .plotly .ytitle,
@@ -80,7 +90,6 @@ def set_custom_style(background_image_path):
         fill: black !important;
     }}
 
-    /* Make select boxes and input text black */
     .stSelectbox label, 
     .stMultiSelect label,
     .stSelectbox span,
@@ -88,12 +97,10 @@ def set_custom_style(background_image_path):
         color: black !important;
     }}
 
-    /* Make sidebar text black */
     .stSidebar [data-testid="stSidebarNav"] {{
         color: black !important;
     }}
 
-    /* Make all headers black */
     .kpi-title {{
         color: black !important;
         font-size: 1.5rem !important;
@@ -101,9 +108,22 @@ def set_custom_style(background_image_path):
         margin-bottom: 1rem !important;
     }}
 
-    /* Add spacing between columns */
     [data-testid="column"] {{
         padding: 0.5rem !important;
+    }}
+
+    .sidebar-logo-container {{
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }}
+
+    .sidebar-logo {{
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 2px solid #00000033;
+        object-fit: cover;
     }}
     </style>
     """
@@ -173,36 +193,19 @@ def show_metrics_line_chart(sales_data):
     total_customers = sales_data['new_customers'].sum()
     return_rate = (sales_data['returns'].sum() / total_sales) * 100
 
-    with col1:
-        st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-        st.metric("Total Sales", f"${total_sales:,.0f}", "↑ 12%")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col2:
-        st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-        st.metric("Avg Daily Sales", f"${avg_daily_sales:,.0f}", "↑ 5%")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col3:
-        st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-        st.metric("Total Customers", f"{total_customers:,}", "↑ 8%")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col4:
-        st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-        st.metric("Return Rate", f"{return_rate:.1f}%", "↓ 2%")
-        st.markdown('</div>', unsafe_allow_html=True)
+    col1.metric("Total Sales", f"${total_sales:,.0f}", "↑ 12%")
+    col2.metric("Avg Daily Sales", f"${avg_daily_sales:,.0f}", "↑ 5%")
+    col3.metric("Total Customers", f"{total_customers:,}", "↑ 8%")
+    col4.metric("Return Rate", f"{return_rate:.1f}%", "↓ 2%")
 
     st.markdown('<h3 style="color: black;">Sales Trend</h3>', unsafe_allow_html=True)
     with st.container():
-        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         fig = px.line(sales_data, x='date', y=['sales', 'returns'],
                       title='Daily Sales and Returns',
                       labels={'value': 'Amount ($)', 'date': 'Date'},
                       template='plotly_white')
         fig.update_layout(**plot_defaults())
         st.plotly_chart(fig, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
 ######################################
 # Category Analysis
@@ -212,7 +215,6 @@ def show_category_analysis(category_data):
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         fig1 = px.bar(category_data, x='category', y='sales',
                       title='Sales by Category',
                       labels={'sales': 'Total Sales ($)', 'category': 'Category'},
@@ -225,10 +227,8 @@ def show_category_analysis(category_data):
             line=dict(color='rgba(0, 128, 255, 0.8)', width=0)
         ))
         st.plotly_chart(fig1, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         fig2 = px.pie(category_data, values='sales', names='category',
                       title='Sales Distribution',
                       template='plotly_white',
@@ -239,18 +239,15 @@ def show_category_analysis(category_data):
             textinfo='percent+label'
         )
         st.plotly_chart(fig2, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
 ######################################
 # Inventory Analysis
 ######################################
 def show_inventory_analysis(category_data):
     st.markdown('### Inventory Management')
-
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         fig1 = px.bar(category_data, x='category', y='inventory',
                       title='Current Inventory Levels',
                       labels={'inventory': 'Units in Stock', 'category': 'Category'},
@@ -261,36 +258,33 @@ def show_inventory_analysis(category_data):
             line=dict(color='rgba(0, 128, 255, 0.8)', width=0)
         ))
         st.plotly_chart(fig1, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         fig2 = px.scatter(category_data, x='sales', y='inventory',
                           size='profit_margin', color='category',
                           title='Sales vs Inventory Analysis',
                           labels={'sales': 'Total Sales ($)', 'inventory': 'Units in Stock'},
                           template='plotly_white')
         fig2.update_layout(**plot_defaults())
-        fig2.update_traces(marker=dict(
-            line=dict(width=1, color='black')
-        ))
+        fig2.update_traces(marker=dict(line=dict(width=1, color='black')))
         st.plotly_chart(fig2, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
 ######################################
-# Main
+# Main App
 ######################################
 def main():
     sales_data, category_data = generate_dummy_data()
-    set_custom_style("images/background_image.avif")
+    set_custom_style("images/background_image.avif", "images/sidebar2.jpg")
 
     with st.sidebar:
-        st.markdown('<div style="padding: 1rem 0;">', unsafe_allow_html=True)
-        st.image("images/logo.png", width=200)
+        st.markdown('<div class="sidebar-logo-container">', unsafe_allow_html=True)
+        logo_encoded = base64.b64encode(open("images/logo.png", "rb").read()).decode()
+        st.markdown(f'<img src="data:image/png;base64,{logo_encoded}" class="sidebar-logo"/>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
-        st.markdown("<hr>", unsafe_allow_html=True)
 
+        st.markdown("<hr>", unsafe_allow_html=True)
         st.markdown('<h2 style="color: black;">Filters</h2>', unsafe_allow_html=True)
+
         date_range = st.date_input(
             "Select Date Range",
             value=(sales_data['date'].min(), sales_data['date'].max())
