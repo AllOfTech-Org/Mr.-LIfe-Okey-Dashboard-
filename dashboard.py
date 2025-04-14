@@ -30,76 +30,70 @@ def set_custom_style(background_image_path):
         background-position: center;
         background-repeat: no-repeat;
         background-attachment: fixed;
-        color: black !important;
     }}
 
     .main .block-container {{
-        background-color: rgba(255, 255, 255, 0.85);
         padding: 2rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin: 1rem;
+    }}
+
+    /* Make all text black */
+    .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6, span, div {{
         color: black !important;
     }}
 
-    .metric-container {{
-        background-color: black !important;
-        padding: 1.5rem !important;
-        border-radius: 15px !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-        margin-bottom: 1rem !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        color: white !important;
+    /* Style for metric values and labels */
+    [data-testid="stMetricLabel"] {{
+        color: black !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
     }}
 
-    .metric-container .stMetric {{
-        color: white !important;
-    }}
-
-    .metric-container .stMetric label {{
-        color: white !important;
+    [data-testid="stMetricValue"] {{
+        color: black !important;
+        font-size: 2rem !important;
         font-weight: 600 !important;
-        font-size: 1rem !important;
     }}
 
-    .metric-container .stMetric [data-testid="stMetricValue"] {{
-        color: white !important;
-        font-size: 1.5rem !important;
-        font-weight: bold !important;
+    [data-testid="stMetricDelta"] {{
+        color: black !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
     }}
 
-    .metric-container .stMetric [data-testid="stMetricDelta"] {{
-        color: white !important;
+    /* Make graph text black */
+    .js-plotly-plot .plotly .gtitle, 
+    .js-plotly-plot .plotly .xtitle,
+    .js-plotly-plot .plotly .ytitle,
+    .js-plotly-plot .plotly .xtick text,
+    .js-plotly-plot .plotly .ytick text {{
+        color: black !important;
+        fill: black !important;
     }}
 
-    .metric-container .stMetric [data-testid="stMetricDelta"] svg {{
-        color: white !important;
+    /* Make select boxes and input text black */
+    .stSelectbox label, 
+    .stMultiSelect label,
+    .stSelectbox span,
+    .stMultiSelect span {{
+        color: black !important;
     }}
 
-    .metric-container .stMetric [data-testid="stMetricDelta"].positive {{
-        color: #4CAF50 !important;
+    /* Make sidebar text black */
+    .stSidebar [data-testid="stSidebarNav"] {{
+        color: black !important;
     }}
 
-    .metric-container .stMetric [data-testid="stMetricDelta"].negative {{
-        color: #f44336 !important;
-    }}
-
+    /* Make all headers black */
     .kpi-title {{
         color: black !important;
         font-size: 1.5rem !important;
         font-weight: 600 !important;
         margin-bottom: 1rem !important;
-        padding-left: 0.5rem !important;
     }}
 
-    .chart-container {{
-        background-color: rgba(255, 255, 255, 0.95);
-        padding: 1.5rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        margin-bottom: 1rem;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        color: black !important;
+    /* Add spacing between columns */
+    [data-testid="column"] {{
+        padding: 0.5rem !important;
     }}
     </style>
     """
@@ -109,19 +103,27 @@ def plot_defaults():
     return {
         'plot_bgcolor': 'rgba(0,0,0,0)',
         'paper_bgcolor': 'rgba(0,0,0,0)',
-        'font': {'color': 'black', 'size': 12},
+        'font': {'color': 'black', 'size': 12, 'family': 'Arial, sans-serif'},
         'title': {'font': {'color': 'black', 'size': 14, 'weight': 'bold'}},
         'xaxis': {
             'title': {'font': {'color': 'black', 'size': 12}},
-            'tickfont': {'color': 'black'},
+            'tickfont': {'color': 'black', 'size': 12},
             'gridcolor': 'rgba(128,128,128,0.1)',
-            'gridwidth': 0.5
+            'gridwidth': 0.5,
+            'tickcolor': 'black',
+            'linecolor': 'black'
         },
         'yaxis': {
             'title': {'font': {'color': 'black', 'size': 12}},
-            'tickfont': {'color': 'black'},
+            'tickfont': {'color': 'black', 'size': 12},
             'gridcolor': 'rgba(128,128,128,0.1)',
-            'gridwidth': 0.5
+            'gridwidth': 0.5,
+            'tickcolor': 'black',
+            'linecolor': 'black'
+        },
+        'legend': {
+            'font': {'color': 'black', 'size': 12},
+            'title': {'font': {'color': 'black', 'size': 12}}
         },
         'margin': {'l': 20, 'r': 20, 't': 40, 'b': 20}
     }
@@ -154,33 +156,32 @@ def generate_dummy_data():
 ######################################
 def show_metrics_line_chart(sales_data):
     st.markdown('<div class="kpi-title">Key Performance Indicators</div>', unsafe_allow_html=True)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    total_sales = sales_data['sales'].sum()
+    avg_daily_sales = sales_data['sales'].mean()
+    total_customers = sales_data['new_customers'].sum()
+    return_rate = (sales_data['returns'].sum() / total_sales) * 100
 
-    with st.container():
-        col1, col2, col3, col4 = st.columns(4)
-        total_sales = sales_data['sales'].sum()
-        avg_daily_sales = sales_data['sales'].mean()
-        total_customers = sales_data['new_customers'].sum()
-        return_rate = (sales_data['returns'].sum() / total_sales) * 100
+    with col1:
+        st.markdown('<div class="metric-container">', unsafe_allow_html=True)
+        st.metric("Total Sales", f"${total_sales:,.0f}", "↑ 12%")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        with col1:
-            st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-            st.metric("Total Sales", f"${total_sales:,.0f}", "↑ 12%")
-            st.markdown('</div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown('<div class="metric-container">', unsafe_allow_html=True)
+        st.metric("Avg Daily Sales", f"${avg_daily_sales:,.0f}", "↑ 5%")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        with col2:
-            st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-            st.metric("Avg Daily Sales", f"${avg_daily_sales:,.0f}", "↑ 5%")
-            st.markdown('</div>', unsafe_allow_html=True)
+    with col3:
+        st.markdown('<div class="metric-container">', unsafe_allow_html=True)
+        st.metric("Total Customers", f"{total_customers:,}", "↑ 8%")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        with col3:
-            st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-            st.metric("Total Customers", f"{total_customers:,}", "↑ 8%")
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with col4:
-            st.markdown('<div class="metric-container">', unsafe_allow_html=True)
-            st.metric("Return Rate", f"{return_rate:.1f}%", "↓ 2%")
-            st.markdown('</div>', unsafe_allow_html=True)
+    with col4:
+        st.markdown('<div class="metric-container">', unsafe_allow_html=True)
+        st.metric("Return Rate", f"{return_rate:.1f}%", "↓ 2%")
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<h3 style="color: black;">Sales Trend</h3>', unsafe_allow_html=True)
     with st.container():
@@ -223,7 +224,10 @@ def show_category_analysis(category_data):
                       template='plotly_white',
                       hole=0.4)
         fig2.update_layout(**plot_defaults())
-        fig2.update_traces(textfont={'color': 'black'})
+        fig2.update_traces(
+            textfont={'color': 'black', 'size': 12},
+            textinfo='percent+label'
+        )
         st.plotly_chart(fig2, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -241,14 +245,7 @@ def show_inventory_analysis(category_data):
                       title='Current Inventory Levels',
                       labels={'inventory': 'Units in Stock', 'category': 'Category'},
                       template='plotly_white')
-        fig1.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            xaxis=dict(showgrid=False),
-            yaxis=dict(showgrid=True, gridwidth=0.5, gridcolor='rgba(128,128,128,0.1)'),
-            margin=dict(l=20, r=20, t=40, b=20),
-            bargap=0.3
-        )
+        fig1.update_layout(**plot_defaults())
         fig1.update_traces(marker=dict(
             color='rgba(0, 128, 255, 0.8)',
             line=dict(color='rgba(0, 128, 255, 0.8)', width=0)
@@ -263,15 +260,9 @@ def show_inventory_analysis(category_data):
                           title='Sales vs Inventory Analysis',
                           labels={'sales': 'Total Sales ($)', 'inventory': 'Units in Stock'},
                           template='plotly_white')
-        fig2.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            xaxis=dict(showgrid=True, gridwidth=0.5, gridcolor='rgba(128,128,128,0.1)'),
-            yaxis=dict(showgrid=True, gridwidth=0.5, gridcolor='rgba(128,128,128,0.1)'),
-            margin=dict(l=20, r=20, t=40, b=20)
-        )
+        fig2.update_layout(**plot_defaults())
         fig2.update_traces(marker=dict(
-            line=dict(width=1, color='white')
+            line=dict(width=1, color='black')
         ))
         st.plotly_chart(fig2, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
